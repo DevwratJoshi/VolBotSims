@@ -1,0 +1,3 @@
+This repository contains the simulations and simulation data for swarm robots using the Brazil Nut Effect. The simulations use the box2d_for_processing library by Daniel Shiffman. 
+Some of the simuations folders are there for testing and debugging. 
+The simulations used for research papers will be added to appropriately named folders in this repository.
