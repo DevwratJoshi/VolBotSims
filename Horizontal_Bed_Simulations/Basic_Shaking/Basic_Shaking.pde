@@ -21,11 +21,11 @@ int readings_taken = 0; // The number of readings actually taken
 //Worth noting here that dataCollectionRate seconds between sims and readings_per_sim readings means dataCollectionRate*readings_per_sim seconds for a group of conditions 
 
 int steps = 0; // keeps track of the number of times the world has stepped
-final int DELAY = 100;
+final int DELAY = 1000;
 // A list for all of our robots
 ArrayList<Robot> robots;
 ArrayList<Vec2> path;
-Ground ground;
+//Ground ground;
 int no_of_robots = 30;
 int large_robots = 0;
 int small_robots = 0; 
@@ -34,28 +34,30 @@ char flag = 'n';
 float velConst = 1;
 Vec2 vel = new Vec2();
 boolean box_pause = true;
-float big = 60;
-float small = 30;
+float big = 40;
+float small = 20;
 float freq;
 float freqStep = 5.0;
 float maxFreq = 30.0;
-float initialFreq = 1.5;
+float initialFreq = 1;
 
 int amplitude;
 int ampStep = 1;
-int maxAmp = 30;
-int initialAmp = int(small);
+int maxAmp = 5000;
+int initialAmp = int(small*4);
 
 float density_low = 0.5;
 float density_high = 4.0;
 float density_mid = 1.0;
 
+float fric_low = 0.1;
+float fric_high = 0.5;
 float large_robot_density = density_high;
 int delay = 0;
 int record = 0;
 PrintWriter outputx, outputy, output;
 
-float box_bottom = 540;
+float box_bottom = 800;
 float box_height = box_bottom;
 float box_edge_width = 40;
 float mean_box_height;
@@ -115,7 +117,7 @@ void setup()
   center_velo = new Vec2();
   center_pos = new Vec2();
 
-  ground = new Ground();
+  //ground = new Ground();
   vel.x = 0.0;
   vel.y = velConst;
 
@@ -126,7 +128,7 @@ void setup()
 
   
   
-   float g = amplitude*4*PI*PI*freq*freq/(9.8*100);
+
    
   output = createWriter("data/" + "README");
     output.println("frequency = " + str(initialFreq) + " amp = " + str(initialAmp));
@@ -158,7 +160,7 @@ void draw() {
       delay = 0;
       ///////// End setting delay to zero
       
-      write_to_file();       ///////////// Robots must all be the correct size initially. Check the initial lambda before shaking begins
+      //write_to_file();       ///////////// Robots must all be the correct size initially. Check the initial lambda before shaking begins
     }
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +187,7 @@ void draw() {
         box2d.step(2/stepsPerSec, 10, 10);
         box.display();
         displayRobots();
-        ground.display();
+        //ground.display();
         // The following function checks the change in the positions of the robots by comparing their current positions to the positions stored in the robot.last_position variable
         if(!robots_moving()) 
         {
@@ -208,7 +210,7 @@ void draw() {
       box_pause = false;
       // Display all the boundaries
       box.display();
-      ground.display();
+      //ground.display();
   
       displayRobots();
   
@@ -436,28 +438,8 @@ void keyPressed()
  
  if(key == 'd')
  {
-   for (int i = robots.size()-1; i >= 0; i--) {
-        Robot p = robots.get(i);
-        if (p.bigProb) 
-        {
-          Vec2 temp = new Vec2();
-          temp = p.checkPos();
-          float d = p.density;
-          
-          p.killBody();
-          robots.remove(i);
-          if(d == density_low)
-          {
-            Robot g = new Robot(temp.x, temp.y, big, 'r', true, density_high);
-            robots.add(g);
-          }
-          else
-          {
-             Robot g = new Robot(temp.x, temp.y, big, 'b', true, density_low);
-            robots.add(g);
-          }
-        }
-      }
+    box2d.setGravity(0.0, -5);
+    box_pause = true;
  }
 }
 void createRobots(String input)
@@ -473,18 +455,29 @@ void createRobots(String input)
       int[] nums = int(split(line, " "));
       char colour = 'g';
 
-      if(nums[2] == 60)
+      if(nums[2] == big)
       {
-         Robot p = new Robot(nums[0], nums[1], big, 'b', true, large_robot_density);
+         Robot p = new Robot(nums[0], nums[1], big, 'b', true, large_robot_density, fric_low);
          robots.add(p);
          large_robots += 1;
       }
       
-      else if(nums[2] == 30)
+      else if(nums[2] == small)
       {
-          Robot p = new Robot(nums[0], nums[1], small, 'g', false, density_mid);
+        float ran2 = random(1);
+        if(ran2 > 0.5)
+        {
+          Robot p = new Robot(nums[0], nums[1], small, 'r', false, density_mid, fric_high);
           robots.add(p);
           small_robots += 1;
+        }
+        
+        else
+        {
+          Robot p = new Robot(nums[0], nums[1], small, 'g', false, density_mid, fric_low);
+          robots.add(p);
+          small_robots += 1;
+        }
       }
       
       else
@@ -548,7 +541,7 @@ Vec2 calcVelocity(Vec2 box_pos)
   */
   else
   {
-    new_velocity.y = maxVelo*sin(map(box_pos.y, mean_box_height - amplitude, mean_box_height + amplitude, 0.174533, 2.96706));
+    new_velocity.y = maxVelo*sin(map(box_pos.y, mean_box_height - amplitude, mean_box_height + amplitude, radians(5), PI-radians(5)));
     if (velocityDirection == -1)
     {
       new_velocity.y = -1*new_velocity.y;
@@ -556,7 +549,7 @@ Vec2 calcVelocity(Vec2 box_pos)
     section = 5;
   }
 
- // println(new_velocity.y + "    " + (box_pos.y - mean_box_height) + " " + section);
+  //println(freq);
    
   return new_velocity;
 }

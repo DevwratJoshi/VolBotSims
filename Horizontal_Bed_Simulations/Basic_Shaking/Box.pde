@@ -105,7 +105,7 @@ class Box
     BodyDef bd = new BodyDef();
     if(type == 'd')
     {
-      bd.type = BodyType.DYNAMIC;
+      bd.type = BodyType.KINEMATIC;
     }
     else
     bd.type = BodyType.STATIC;

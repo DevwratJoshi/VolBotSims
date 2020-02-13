@@ -13,14 +13,14 @@ class Robot
   public boolean decreasing;
   Vec2 last_position;
   // Constructor
-  Robot(float x, float y, float radius, char c, boolean prob, float d)
+  Robot(float x, float y, float radius, char c, boolean prob, float d, float bed_fric)
   {
     r = radius;
     bigProb = prob;
     density = 1.0;
-    e = 0.1;
+    e = 0.5;
     friction = 0.1;
-    friction_with_bed = 0.1;
+    friction_with_bed = bed_fric;
     mass = 0.250;
     makeBody(new Vec2(x, y));
     increasing = false;
@@ -218,8 +218,8 @@ class Robot
     Vec2 force = new Vec2();
     float friction_mag = friction_with_bed*mass*9.8;
     Vec2 r_vel = checkLinearVelocity();
-    force.x = r_vel.x + box_vel.x;
-    force.y = r_vel.y + box_vel.y;
+    force.x = r_vel.x - box_vel.x;
+    force.y = r_vel.y - box_vel.y;
     float temp;
     temp = sqrt(force.x*force.x + force.y*force.y);
     force.x = -friction_mag*force.x/temp;
