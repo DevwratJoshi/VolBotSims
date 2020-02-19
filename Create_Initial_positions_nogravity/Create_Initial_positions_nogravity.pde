@@ -14,24 +14,24 @@ final int DELAY = 300;
 // A list for all of our rectangles
 ArrayList<Robot> robots;
 Ground ground;
-int no_of_robots = 30;
-int blueRobots = 30;
-int greenRobots = 0;
+int no_of_robots = 100;
+int blueRobots = 70;
+int greenRobots = 30;
 int count = 0;
 char flag = 'n';
 float velConst = 1;
 Vec2 vel = new Vec2();
 boolean box_pause = true;
-float big = 60;
+float big = 30;
 float mid = 45;
-int small = 30;
+int small = 20;
 int freq = 60;
 int delay = 0;
 int record = 0;
 PrintWriter output;
 char b = 'n';
-float box_bottom = 540;
-float box_height = box_bottom;
+float box_bottom = 400;
+float box_height = 2*box_bottom;
 float box_edge_width = 40;
 int mean_box_height;
 Vec2 center_pos, center_velo;
@@ -94,15 +94,13 @@ void draw() {
     
     /////////////////// A single large robot in the middle of the stack
     
-      if (count < no_of_robots && random(1) < 0.4)
+  if (count < no_of_robots && random(1) < 0.4)
   {
    float ran = random(1);
     
     Vec2 new_pos = new Vec2();
     
-
-    
-    if (count == 0 && greenRobots > 0)
+    if (ran < 0.8 && greenRobots > 0)
     {
       
     while(true)
@@ -121,6 +119,34 @@ void draw() {
     } 
     else 
     {
+      int ran2 = int(random(5));
+      float gr = 1;
+      switch(ran2)
+      {
+       case 1:
+       {
+       box2d.setGravity(0, -gr);
+       break;
+       }
+       
+       case 2:
+       {
+       box2d.setGravity(0, gr);
+       break;
+       }
+       
+       case 3:
+       {
+       box2d.setGravity(gr, 0);
+       break;
+       }
+       
+       case 4:
+       {
+       box2d.setGravity(-gr, 0);
+       break;
+       }
+      }
       while(true)
     {
       new_pos.x = random(0, width);
@@ -136,6 +162,10 @@ void draw() {
     }
    }
 
+  if(count == no_of_robots)
+  {
+   box2d.setGravity(0,0); 
+  }
     
   
 
