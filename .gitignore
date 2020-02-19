@@ -5,3 +5,5 @@ Old
 examples
 tools
 temp_downgoal
+*.txt
+*data*
