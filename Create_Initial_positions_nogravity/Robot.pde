@@ -181,4 +181,39 @@ class Robot
    return pos;
   }
   
+  void applyVelocity(float vel)
+  {    
+      Vec2 n_vel = new Vec2(0,0);
+      int ran2 = int(random(10));
+      
+      switch(ran2)
+      {
+       case 1:
+       {
+       n_vel.x = vel;
+       break;
+       }
+       
+       case 2:
+       {
+       n_vel.x = -vel;
+       break;
+       }
+       
+       case 3:
+       {
+       n_vel.y = vel;
+       break;
+       }
+       
+       case 4:
+       {
+       n_vel.y = -vel;
+       break;
+       }
+      } 
+   body.setLinearVelocity(n_vel); 
+  }
+  
+  
 }

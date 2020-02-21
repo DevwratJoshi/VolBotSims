@@ -464,7 +464,7 @@ void createRobots(String input)
 
       if(nums[2] == big)  
       {
-         Robot p = new Robot(nums[0], nums[1], big, 'r', true, density_mid, fric_high);
+         Robot p = new Robot(nums[0], nums[1], big, 'r', true, density_mid, fric_low);
          robots.add(p);
          large_robots += 1;
       }

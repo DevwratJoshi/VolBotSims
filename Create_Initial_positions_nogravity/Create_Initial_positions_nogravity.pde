@@ -14,29 +14,29 @@ final int DELAY = 300;
 // A list for all of our rectangles
 ArrayList<Robot> robots;
 Ground ground;
-int no_of_robots = 100;
-int blueRobots = 70;
-int greenRobots = 30;
+int no_of_robots = 150;
+int blueRobots = 150;
+int greenRobots = 0;
 int count = 0;
 char flag = 'n';
 float velConst = 1;
 Vec2 vel = new Vec2();
 boolean box_pause = true;
 float big = 30;
-float mid = 45;
+float mid = 25;
 int small = 20;
 int freq = 60;
 int delay = 0;
 int record = 0;
 PrintWriter output;
 char b = 'n';
-float box_bottom = 400;
-float box_height = 2*box_bottom;
+float box_bottom = 1600;
+float box_height = 400;
 float box_edge_width = 40;
 int mean_box_height;
 Vec2 center_pos, center_velo;
 int velocityDirection;
-int amplitude;
+int amplitude = int(small*4);
 Vec2 mouse1, mouse2;
 Vec2 temp_mouse = new Vec2();
 boolean mouseActive;
@@ -44,7 +44,7 @@ int max_record = 10000;
 String blah;
 void setup()
 {
-  size(1000, 1000);
+  size(2000, 1000);
   smooth();
  
   box2d = new Box2DProcessing(this, 100);
@@ -52,7 +52,7 @@ void setup()
   mean_box_height = 11*height/12;
 
   box2d.setGravity(0, 0);
-box = new Box(width/2, height/2 + box_height/2 + box_edge_width/2, 'k');
+box = new Box(width/2 - amplitude, height/2 + box_height/2 + box_edge_width/2, 'k');
   robots = new ArrayList<Robot>();
   
   center_velo = new Vec2();
@@ -62,7 +62,7 @@ box = new Box(width/2, height/2 + box_height/2 + box_edge_width/2, 'k');
   int box_height = height*2;
   
   
-  amplitude = (int)(small);
+  amplitude = (int)(small*4);
   ground = new Ground();
   vel.x = 0.0;
   vel.y = velConst;
@@ -94,7 +94,7 @@ void draw() {
     
     /////////////////// A single large robot in the middle of the stack
     
-  if (count < no_of_robots && random(1) < 0.4)
+  if (count < no_of_robots && random(1) < 0.8)
   {
    float ran = random(1);
     
@@ -119,34 +119,7 @@ void draw() {
     } 
     else 
     {
-      int ran2 = int(random(5));
-      float gr = 1;
-      switch(ran2)
-      {
-       case 1:
-       {
-       box2d.setGravity(0, -gr);
-       break;
-       }
-       
-       case 2:
-       {
-       box2d.setGravity(0, gr);
-       break;
-       }
-       
-       case 3:
-       {
-       box2d.setGravity(gr, 0);
-       break;
-       }
-       
-       case 4:
-       {
-       box2d.setGravity(-gr, 0);
-       break;
-       }
-      }
+      
       while(true)
     {
       new_pos.x = random(0, width);
@@ -160,12 +133,14 @@ void draw() {
       robots.add(p);
       count++;
     }
+    
+  for(Robot r: robots)
+  {
+   r.applyVelocity(2); 
+  }
    }
 
-  if(count == no_of_robots)
-  {
-   box2d.setGravity(0,0); 
-  }
+
     
   
 
@@ -188,7 +163,21 @@ void draw() {
     }
   }
 
-if(keyPressed && count >= no_of_robots)
+if(count >= no_of_robots)
+{
+  pushMatrix();
+  fill(0, 102, 153);
+  textSize(32);
+  text("Done", width/2, 90); 
+  popMatrix();
+  
+ for(Robot r: robots)
+  {
+   r.applyVelocity(0.0); 
+  }
+}
+
+if(mousePressed && count >= no_of_robots)
 {
   println(greenRobots + " " + blueRobots + " " + count);
   for (int i = robots.size()-1; i >= 0; i--) {
