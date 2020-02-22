@@ -9,11 +9,10 @@ import org.jbox2d.dynamics.joints.*;
 Box2DProcessing box2d;
 
 Box box;
-final float stepsPerSec = 60.0;
+final float stepsPerSec = 100.0;
 final float big_diameter = 1.73; // The diameter ratio of actual robot_large to actual robot_small
-final float segregator_frac = 0.5; // fraction of modules that are segregators
-final int maxSteps = 10000;
-float mover_small_frac = 0.4; // This is the percentage of the mover robots that are small. Used to control the total packing fraction
+final float segregator_frac = 0.3; // fraction of modules that are segregators
+final int maxSteps = 5000;
 float small = 20;
 float big = small*big_diameter;
 float segregator_size = small; // Fixed segregator size
@@ -39,6 +38,11 @@ float velConst = 1;
 Vec2 vel = new Vec2();
 boolean box_pause = true;
 
+float mover_small_frac = 0.1; // This is the percentage of the mover robots that are small. Used to control the total packing fraction
+float mover_frac_step = 0.1;
+float mover_frac_initial = 0.0;
+float mover_frac_final = 1.0;
+
 
 float density_small = 13.15; // Actual density of the small robot
 float density_large = 4.38; // Actual density of the large robot
@@ -51,7 +55,7 @@ float fric_high = 0.5;
 
 int delay = 0;
 int record = 0;
-PrintWriter output_init, output_final, output;
+
 
 float box_bottom = small*2*40.0;
 float box_height = small*2*10.0;
@@ -75,6 +79,12 @@ Vec2 box_pos = new Vec2();
 String in_folder = "initial_positions/";
 String in = "initial_positions";
 int in_counter = 1;
+int initial_in_counter = 1;
+int in_counter_step = 1;
+int in_counter_final = 5;
+String data_folder = "data";
+PrintWriter output_init, output_final, output; // The output file for initial positions, final positions
+
 String extention; // The extention for the files
 
 boolean blueBallSelected = false;
@@ -114,8 +124,9 @@ void setup()
   //ground = new Ground();
   vel.x = 0.0;
   vel.y = velConst;
-  in_counter = 0;
+  in_counter = initial_in_counter - in_counter_step; // Initial setSimulationConditions will add in_counter_step to in_counter
   extention = ".txt";
+  mover_small_frac = mover_frac_initial;
 
    /*
   output = createWriter("data/" + "README");
@@ -140,7 +151,7 @@ void draw() {
       /// End creating the box
   
       //////// Creating new robots using data from initial_positions.txt
-      createRobots(in_folder + in  +  extention);
+      createRobots(in_folder + in + str(in_counter)+  extention);
       /////// End of creating robots
   
       //////// Setting delay to zero
@@ -282,7 +293,7 @@ void write_to_file(PrintWriter f)
   for(Robot r : robots)
   {
     Vec2 pos = r.checkPos();
-    f.println((box_pos.x - pos.x) + "," + (b_pos.y - pos.y) + "," + r.type + "," + r.friction); // Storing the radius and the friction of the robot
+    f.println((box_pos.x - pos.x) + "," + (b_pos.y - pos.y) + "," + r.type + "," + r.friction_with_bed + "," + r.r + "," + packing_fraction); // Storing the radius and the friction of the robot
   }
   f.flush();
   f.close();
@@ -412,8 +423,8 @@ void createRobots(String input)
     e.printStackTrace();
   }
   
-  println("Segregators = " + segregators + "  Movers = " + movers);
-  println("Actual segregators = " + actual_segregator);
+ // println("Segregators = " + segregators + "  Movers = " + movers);
+ // println("Actual segregators = " + actual_segregator);
   
   correct_robot_distribution("type",  segregators, actual_segregator,'n');
   
@@ -437,9 +448,9 @@ void createRobots(String input)
       large_movers++;
     }
   }
-  println("Corrected segregators robots = " + segregators + "  Corrected movers robots = " + movers);
-  println("\nSmall movers = " + small_movers + " Movers large = " + large_movers);
-  println("Actual small movers = " + actual_movers_small);
+  //println("Corrected segregators robots = " + segregators + "  Corrected movers robots = " + movers);
+ // println("\nSmall movers = " + small_movers + " Movers large = " + large_movers);
+ // println("Actual small movers = " + actual_movers_small);
   correct_robot_distribution("size", small_movers, actual_movers_small, 'm');
   
   segregators = 0;
@@ -468,7 +479,7 @@ void createRobots(String input)
   }
   packing_fraction = packing_fraction/(box_bottom*box_height);
 
-println("Corrected small movers = " + small_movers + " Corrected movers large = " + large_movers);
+//println("Corrected small movers = " + small_movers + " Corrected movers large = " + large_movers);
   
 }
 
@@ -677,15 +688,24 @@ void setSimulationConditions()
       
    in_counter += 1;
    
-   if(in_counter > 10)
+   if(in_counter > in_counter_final)
      {
+       in_counter = initial_in_counter;
+       float temp_packing = 10.0; //Check if the packing fraction is feasible. Initially set to infeasible value
+       while(temp_packing > 0.85) // Keep increasing if the packing is not possible
+       {
+         mover_small_frac += mover_frac_step;
+         temp_packing = PI*no_of_robots*(segregator_size*segregator_size *segregator_frac + (1.0-segregator_frac)*(small*small*mover_small_frac + big*big*(1.0-mover_small_frac)))/(box_bottom*box_height);
+         println(temp_packing);
+       }
+       if(mover_small_frac > mover_frac_final)
          exitFlag = true;
              
      }  
      else
      {
-     output_init = createWriter("data/Initial/" + str(in_counter) + extention);
-      output_final = createWriter("data/Final/" + str(in_counter) + extention);
+     output_init = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Initial/" + str(in_counter) + extention);
+      output_final = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Final/" + str(in_counter) + extention);
      }
 }
 
