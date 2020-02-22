@@ -9,15 +9,16 @@ import org.jbox2d.dynamics.joints.*;
 Box2DProcessing box2d;
 
 Box box;
-final float stepsPerSec = 200.0;
+final float stepsPerSec = 60.0;
 final float big_diameter = 1.73; // The diameter ratio of actual robot_large to actual robot_small
-final float segregator_frac = 0.2; // fraction of modules that are segregators
+final float segregator_frac = 0.5; // fraction of modules that are segregators
 final int maxSteps = 10000;
+float mover_small_frac = 0.4; // This is the percentage of the mover robots that are small. Used to control the total packing fraction
 float small = 20;
 float big = small*big_diameter;
-float segregator_size = big; // Fixed segregator size
+float segregator_size = small; // Fixed segregator size
 final int amplitude = int(small*4); //Fixed amplitude
-final float freq = 1.0; //Fixed frequency
+final float freq = 0.5; //Fixed frequency
 
 //Worth noting here that dataCollectionRate seconds between sims and readings_per_sim readings means dataCollectionRate*readings_per_sim seconds for a group of conditions 
 
@@ -37,14 +38,14 @@ char flag = 'n';
 float velConst = 1;
 Vec2 vel = new Vec2();
 boolean box_pause = true;
-float mover_small_frac = 0.6; // This is the percentage of the mover robots that are small. Used to control the total packing fraction
+
 
 float density_small = 13.15; // Actual density of the small robot
 float density_large = 4.38; // Actual density of the large robot
 float density_mid = 1.0;
 
-float fric_low = 0.1;
-float fric_high = 0.5              ;
+float fric_low = 0.05;
+float fric_high = 0.5;
 
 
 
@@ -105,10 +106,6 @@ void setup()
   box2d.setGravity(0, 0.0);
   mean_box_height = height/2 + box_height/2 + box_edge_width/2;
 
-
-
-  
-
   robots = new ArrayList<Robot>();
   path = new ArrayList<Vec2>();
   center_velo = new Vec2();
@@ -117,14 +114,8 @@ void setup()
   //ground = new Ground();
   vel.x = 0.0;
   vel.y = velConst;
-
- 
-
   in_counter = 0;
   extention = ".txt";
-
-  
-  
 
    /*
   output = createWriter("data/" + "README");
@@ -145,11 +136,11 @@ void draw() {
     if(!exitFlag)
     {
       // Creating the box
-      box = new Box(width/2, mean_box_height, 's');
+      box = new Box(width/2-amplitude, mean_box_height, 's');
       /// End creating the box
   
       //////// Creating new robots using data from initial_positions.txt
-      createRobots(in_folder + in +str(in_counter) +  extention);
+      createRobots(in_folder + in  +  extention);
       /////// End of creating robots
   
       //////// Setting delay to zero
@@ -367,11 +358,22 @@ void createRobots(String input)
         float ran2 = random(1);
         if(ran2 < segregator_frac)
         {
-         
-          Robot p = new Robot(nums[0], nums[1], big, 'r', true, density_large, fric_high, 's'); // Segregator
-          robots.add(p);
-          large_robots += 1;
-          segregators+=1;
+         float d;
+         if(segregator_size == big)
+        {
+        large_robots+=1;
+        d = density_large;
+        }  
+        else
+        {
+          small_robots += 1;
+          d = density_small;
+        }
+          Robot p = new Robot(nums[0], nums[1], segregator_size, 'r', true, d, fric_high, 's'); // Segregator
+          robots.add(p);	
+
+              
+      	  segregators+=1;
         }
         
         else
@@ -387,7 +389,7 @@ void createRobots(String input)
           }
           else
           {
-            Robot p = new Robot(nums[0], nums[1], big, 'g', true, density_small, fric_low, 'm'); // mover
+            Robot p = new Robot(nums[0], nums[1], big, 'g', true, density_large, fric_low, 'm'); // mover
             robots.add(p);
             large_robots += 1;
             large_movers++;
@@ -412,9 +414,34 @@ void createRobots(String input)
   
   println("Segregators = " + segregators + "  Movers = " + movers);
   println("Actual segregators = " + actual_segregator);
-  println("Small movers = " + small_movers + "Movers large = " + large_movers);
+  
   correct_robot_distribution("type",  segregators, actual_segregator,'n');
+  
+  
+  segregators = 0;
+  movers = 0;
+    small_movers = 0;
+  large_movers = 0;
+  for(Robot r:robots)
+  {
+    if(r.type == 's')
+    segregators++;
+    
+    else if(r.type == 'm')
+    {
+      movers++;
+      if(r.r == small)
+      small_movers++;
+      
+      else if(r.r == big)
+      large_movers++;
+    }
+  }
+  println("Corrected segregators robots = " + segregators + "  Corrected movers robots = " + movers);
+  println("\nSmall movers = " + small_movers + " Movers large = " + large_movers);
+  println("Actual small movers = " + actual_movers_small);
   correct_robot_distribution("size", small_movers, actual_movers_small, 'm');
+  
   segregators = 0;
   movers = 0;
   small_movers = 0;
@@ -440,7 +467,7 @@ void createRobots(String input)
     packing_fraction += PI*r.r*r.r;
   }
   packing_fraction = packing_fraction/(box_bottom*box_height);
-println("Corrected segregators robots = " + segregators + "  Corrected movers robots = " + movers);
+
 println("Corrected small movers = " + small_movers + " Corrected movers large = " + large_movers);
   
 }
@@ -460,6 +487,7 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
   char col = 'r';
   float size;
   float friction;
+  float density;
   if(quantity == "size")
   {     
      float change_from;
@@ -470,6 +498,8 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
        change_to = big;
        change_dir = -1;
        col = 'r';
+       density = density_large;
+       
      }
      
      else if(current_number < actual_number)
@@ -478,6 +508,7 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
        change_to = small;
        change_dir = 1;
        col = 'g';
+       density = density_small;
      }
      
      else
@@ -489,7 +520,7 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
            Robot r = robots.get(i);
           if(r.r == change_from && random(1) < 0.1 && r.type == type)
           {
-           Robot n_r = new Robot(r.checkPos().x, r.checkPos().y, change_to, r.colour, !r.bigProb, r.density, r.friction_with_bed, r.type);
+           Robot n_r = new Robot(r.checkPos().x, r.checkPos().y, change_to, r.colour, !r.bigProb, density, r.friction_with_bed, r.type);
            
             robots.remove(i);
             r.killBody();
@@ -559,7 +590,7 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
        change_to = 'm';
        change_dir = -1;
        col = 'g';
-       size = small;
+       size = small; // small by default, but will change this when correcting mover size ratio
        friction = fric_low;
      }
      
@@ -569,7 +600,7 @@ void correct_robot_distribution(String quantity, int current_number, int actual_
        change_to = 's';
        change_dir = 1;
        col = 'r';
-       size = big;
+       size = segregator_size;
        friction = fric_high;
      }
      

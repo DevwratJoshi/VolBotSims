@@ -22,7 +22,7 @@ class Robot
     e = 0.5;
     friction = 0.1;
     friction_with_bed = bed_fric;
-    mass = PI*(radius*radius/10000) * d; // Divided by 10000 cause to resolve the pixel to meter ratio
+    mass = PI*(radius*radius/(10000)) * d; // Divided by 10000 cause to resolve the pixel to meter ratio
     type = t;
     makeBody(new Vec2(x, y));
     increasing = false;
@@ -227,7 +227,7 @@ class Robot
     temp = sqrt(force.x*force.x + force.y*force.y);
     force.x = -friction_mag*force.x/temp;
     force.y = -friction_mag*force.y/temp;
-    //body.applyLinearImpulse(force, body.getWorldCenter(), true);
+    //body.applyLinearImpulse(force, body.getWorldCenter(), false);
    body.applyForce(force, body.getWorldCenter());
   }
    
