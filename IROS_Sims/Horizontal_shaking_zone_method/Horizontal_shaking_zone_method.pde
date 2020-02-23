@@ -18,9 +18,9 @@ float big = small*big_diameter;
 float segregator_size = big; // Fixed segregator size
 final int amplitude = int(small*4); //Fixed amplitude
 final float freq = 0.5; //Fixed frequency
-
+final float zoneNumber_max = 3;
 //Worth noting here that dataCollectionRate seconds between sims and readings_per_sim readings means dataCollectionRate*readings_per_sim seconds for a group of conditions 
-
+final float zoneWidth = 5.0; // The width of the zone in small module diameters
 int steps = 0; // keeps track of the number of times the world has stepped
 
 final int DELAY = 100;
@@ -51,7 +51,8 @@ float density_mid = 1.0;
 float fric_low = 0.05;
 float fric_high = 0.5;
 
-
+int zoneNumber;
+int zoneNumber_initial = 1;
 
 int delay = 0;
 int record = 0;
@@ -125,6 +126,7 @@ void setup()
   vel.x = 0.0;
   vel.y = velConst;
   in_counter = initial_in_counter; // Initial setSimulationConditions will add in_counter_step to in_counter
+  zoneNumber = zoneNumber_initial;
   print(in_counter);
   extention = ".txt";
   mover_small_frac = mover_frac_initial;
@@ -330,13 +332,33 @@ void write_to_file(PrintWriter f)
 boolean robotRadiusIncrease(Robot r)
 {
   
-  if(r.bigProb && ((mouse1.y - mouse2.y)/(mouse1.x - mouse2.x))*(r.checkPos().x - mouse1.x) + mouse1.y < r.checkPos().y)
+  if(r.type == 'm' && robotInZone(r.checkPos()))
   {
     return true;
   }
   return false;
   
 }
+
+boolean robotInZone(Vec2 pos)
+{
+  
+}
+
+void setZoneLine(int zoneNumber) // zoneWidth is the zone width. zoneNumber is 1 for the center zone and zoneNumber_max for the zone at the edge of the box 
+{
+  //mouse1 corresponds to the left zone line's intercept with the bottom of the box, and mouse2 corresponds to the right line's intercept with the bottom of the box
+  // The zone lines here are vertical, so 2 lines can be drawn with these points alone
+  Vec2 boxp = box.checkPos();
+  
+  float zoneWidth_pixels = zoneWidth*small*2;
+  float zone_MidPoint = boxp.x + ((zoneNumber-1) * (box_bottom/2 - zoneWidth_pixels/2))/(zoneNumber_max-1); //x cordinate of the mid point of this zone
+  mouse1.x = zone_MidPoint - zoneWidth_pixels/2;
+  mouse2.x = zone_MidPoint + zoneWidth_pixels/2;
+  mouse1.y = boxp.y - box.w/2;
+  mouse2.y = boxp.y - box.w/2;
+}
+
 void displayRobots()
 {
   for (Robot p : robots)
