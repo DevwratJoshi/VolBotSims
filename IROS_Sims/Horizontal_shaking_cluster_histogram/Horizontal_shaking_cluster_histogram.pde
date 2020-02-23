@@ -15,7 +15,7 @@ final float segregator_frac = 0.3; // fraction of modules that are segregators
 final int maxSteps = 5000;
 float small = 20;
 float big = small*big_diameter;
-float segregator_size = big; // Fixed segregator size
+float segregator_size = small; // Fixed segregator size
 final int amplitude = int(small*4); //Fixed amplitude
 final float freq = 0.5; //Fixed frequency
 
@@ -82,7 +82,7 @@ int in_counter = 1;
 int initial_in_counter = 1;
 int in_counter_step = 1;
 int in_counter_final = 5;
-String data_folder = "data_test";
+String data_folder = "data";
 PrintWriter output_init, output_final, output; // The output file for initial positions, final positions
 
 String extention; // The extention for the files
@@ -124,8 +124,7 @@ void setup()
   //ground = new Ground();
   vel.x = 0.0;
   vel.y = velConst;
-  in_counter = initial_in_counter; // Initial setSimulationConditions will add in_counter_step to in_counter
-  print(in_counter);
+  in_counter = initial_in_counter - in_counter_step; // Initial setSimulationConditions will add in_counter_step to in_counter
   extention = ".txt";
   mover_small_frac = mover_frac_initial;
 
@@ -144,10 +143,9 @@ void setup()
 void draw() {   
   if (steps == 0)
   {
-    
+    setSimulationConditions();
     if(!exitFlag)
     {
-      setSimulationConditions();
       // Creating the box
       box = new Box(width/2-amplitude, mean_box_height, 's');
       /// End creating the box
@@ -295,7 +293,7 @@ void write_to_file(PrintWriter f)
   for(Robot r : robots)
   {
     Vec2 pos = r.checkPos();
-    f.println((pos.x - b_pos.x + box_bottom/2) + "," + (b_pos.y - pos.y) + "," + r.type + "," + r.friction_with_bed + "," + r.r + "," + packing_fraction); // Storing the radius and the friction of the robot
+    f.println((box_pos.x - pos.x) + "," + (b_pos.y - pos.y) + "," + r.type + "," + r.friction_with_bed + "," + r.r + "," + packing_fraction); // Storing the radius and the friction of the robot
   }
   f.flush();
   f.close();
@@ -687,37 +685,28 @@ Vec2 calcVelocity(Vec2 box_pos)
 
 void setSimulationConditions()
 {
-
-    float temp_packing = 10.0; //Check if the packing fraction is feasible. Initially set to infeasible value
-       while(true) // Keep increasing if the packing fraction is not possible
-       {
-         temp_packing = PI*no_of_robots*(segregator_size*segregator_size *segregator_frac + (1.0-segregator_frac)*(small*small*mover_small_frac + big*big*(1.0-mover_small_frac)))/(box_bottom*box_height);
-         if(temp_packing < 0.85)
-           break;
-         else
-           mover_small_frac += mover_frac_step;
-           
-          if(mover_small_frac > mover_frac_final)
-          break;
-          
-           println(temp_packing);
-       }
+      
+   in_counter += 1;
+   
    if(in_counter > in_counter_final)
      {
        in_counter = initial_in_counter;
-       mover_small_frac += mover_frac_step;
-       
+       float temp_packing = 10.0; //Check if the packing fraction is feasible. Initially set to infeasible value
+       while(temp_packing > 0.85) // Keep increasing if the packing is not possible
+       {
+         mover_small_frac += mover_frac_step;
+         temp_packing = PI*no_of_robots*(segregator_size*segregator_size *segregator_frac + (1.0-segregator_frac)*(small*small*mover_small_frac + big*big*(1.0-mover_small_frac)))/(box_bottom*box_height);
+         println(temp_packing);
+       }
        if(mover_small_frac > mover_frac_final)
          exitFlag = true;
              
      }  
      else
      {
-      output_init = createWriter(data_folder + "/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Initial/" + str(in_counter) + extention);
-      output_final = createWriter(data_folder + "/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Final/" + str(in_counter) + extention);
-      in_counter += 1;
+     output_init = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Initial/" + str(in_counter) + extention);
+      output_final = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Final/" + str(in_counter) + extention);
      }
-     
 }
 
 void robots_store_last_positions()
