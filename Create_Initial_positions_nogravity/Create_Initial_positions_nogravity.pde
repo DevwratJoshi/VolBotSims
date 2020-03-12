@@ -30,8 +30,8 @@ int delay = 0;
 int record = 0;
 PrintWriter output;
 char b = 'n';
-float box_bottom = 1600;
-float box_height = 400;
+float box_bottom = small*2*15.0;
+float box_height = small*2*15.0;
 float box_edge_width = 40;
 int mean_box_height;
 Vec2 center_pos, center_velo;
@@ -44,7 +44,7 @@ int max_record = 10000;
 String blah;
 void setup()
 {
-  size(2000, 1000);
+  size(1000, 1000);
   smooth();
  
   box2d = new Box2DProcessing(this, 100);
@@ -52,7 +52,7 @@ void setup()
   mean_box_height = 11*height/12;
 
   box2d.setGravity(0, 0);
-box = new Box(width/2 - amplitude, height/2 + box_height/2 + box_edge_width/2, 'k');
+box = new Box(width/2, height/2 + box_height/2 + box_edge_width/2, 'k');
   robots = new ArrayList<Robot>();
   
   center_velo = new Vec2();

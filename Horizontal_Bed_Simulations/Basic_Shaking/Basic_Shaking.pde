@@ -21,7 +21,7 @@ int readings_taken = 0; // The number of readings actually taken
 //Worth noting here that dataCollectionRate seconds between sims and readings_per_sim readings means dataCollectionRate*readings_per_sim seconds for a group of conditions 
 
 int steps = 0; // keeps track of the number of times the world has stepped
-final int DELAY = 1000;
+final int DELAY = 100;
 // A list for all of our robots
 ArrayList<Robot> robots;
 ArrayList<Vec2> path;
@@ -465,7 +465,7 @@ void createRobots(String input)
       else if(nums[2] == small)
       {
         float ran2 = random(1);
-        if(ran2 > 0.5)
+        if(ran2 > 0.6)
         {
           Robot p = new Robot(nums[0], nums[1], small, 'r', false, density_mid, fric_high);
           robots.add(p);

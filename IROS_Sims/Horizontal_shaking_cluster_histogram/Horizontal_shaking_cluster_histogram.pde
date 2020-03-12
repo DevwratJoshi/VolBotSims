@@ -11,13 +11,13 @@ Box2DProcessing box2d;
 Box box;
 final float stepsPerSec = 100.0;
 final float big_diameter = 1.73; // The diameter ratio of actual robot_large to actual robot_small
-final float segregator_frac = 0.3; // fraction of modules that are segregators
-final int maxSteps = 5000;
+final float segregator_frac = 0.1; // fraction of modules that are segregators
+final int maxSteps = 100000;
 float small = 20;
 float big = small*big_diameter;
-float segregator_size = small; // Fixed segregator size
-final int amplitude = int(small*4); //Fixed amplitude
-final float freq = 0.5; //Fixed frequency
+float segregator_size = big; // Fixed segregator size
+final int amplitude = int(small*8); //Fixed amplitude
+final float freq = 0.3; //Fixed frequency
 
 //Worth noting here that dataCollectionRate seconds between sims and readings_per_sim readings means dataCollectionRate*readings_per_sim seconds for a group of conditions 
 
@@ -28,7 +28,7 @@ final int DELAY = 100;
 ArrayList<Robot> robots;
 ArrayList<Vec2> path;
 //Ground ground;
-int no_of_robots = 150;
+int no_of_robots = 120;
 int large_robots = 0;
 int small_robots = 0; 
 float packing_fraction;
@@ -40,7 +40,7 @@ boolean box_pause = true;
 
 float mover_small_frac = 0.1; // This is the percentage of the mover robots that are small. Used to control the total packing fraction
 float mover_frac_step = 0.1;
-float mover_frac_initial = 0.0;
+float mover_frac_initial = 1.0;
 float mover_frac_final = 1.0;
 
 
@@ -48,8 +48,8 @@ float density_small = 13.15; // Actual density of the small robot
 float density_large = 4.38; // Actual density of the large robot
 float density_mid = 1.0;
 
-float fric_low = 0.05;
-float fric_high = 0.5;
+float fric_low = 0.1;
+float fric_high = 0.6;
 
 
 
@@ -74,15 +74,15 @@ StringList LinePositionGroup;
 int currentUpPosition;
 int currentDownPosition;
 Vec2 COM = new Vec2();
-Vec2 box_pos = new Vec2();
+
 
 String in_folder = "initial_positions/";
 String in = "initial_positions";
 int in_counter = 1;
-int initial_in_counter = 1;
+int initial_in_counter = 2;
 int in_counter_step = 1;
 int in_counter_final = 5;
-String data_folder = "data";
+String data_folder = "test/";
 PrintWriter output_init, output_final, output; // The output file for initial positions, final positions
 
 String extention; // The extention for the files
@@ -128,15 +128,16 @@ void setup()
   extention = ".txt";
   mover_small_frac = mover_frac_initial;
 
-   /*
-  output = createWriter("data/" + "README");
-  output.println("frequency = " + str(initialFreq) + " amp = " + str(initialAmp));
+   
+  output = createWriter(data_folder + "README");
+  output.println("frequency = " + str(freq) + " amp = " + str(amplitude));
   output.println("big diameter = " + str(int(big)) + "\n small diameter = " + str(int(small)));
   output.println("number of robots = " + str(no_of_robots));
   output.println("box_bottom = " + str(int(box_bottom)));
+  output.println("friction_low = " + str(fric_low) + " friction_high = " + str(fric_high));
   output.flush();
   output.close();
-  */
+  
 
 }
 
@@ -147,7 +148,7 @@ void draw() {
     if(!exitFlag)
     {
       // Creating the box
-      box = new Box(width/2-amplitude, mean_box_height, 's');
+      box = new Box(width/2-small*4, mean_box_height, 's');
       /// End creating the box
   
       //////// Creating new robots using data from initial_positions.txt
@@ -274,7 +275,7 @@ void display_sim_conditions()
   pushMatrix();
   fill(0, 102, 153);
   textSize(32);
-  text("Frequency = " + str(freq) + "    Friction_red = " + str(fric_high), 120, 30); 
+  text("Frequency = " + str(freq) + "    Friction_red = " + str(fric_low), 120, 30); 
   text("Amplitude = " + str(amplitude) + "     Friction_green = " + str(fric_low), 120, 60);
   float robot_area = 0.;
 
@@ -293,7 +294,7 @@ void write_to_file(PrintWriter f)
   for(Robot r : robots)
   {
     Vec2 pos = r.checkPos();
-    f.println((box_pos.x - pos.x) + "," + (b_pos.y - pos.y) + "," + r.type + "," + r.friction_with_bed + "," + r.r + "," + packing_fraction); // Storing the radius and the friction of the robot
+    f.println((pos.x - b_pos.x + box_bottom/2)/(small*2) + "," + (b_pos.y - pos.y)/(small*2) + "," + r.type + "," + r.friction_with_bed + "," + r.r + "," + packing_fraction); // Storing the radius and the friction of the robot
   }
   f.flush();
   f.close();
@@ -400,7 +401,7 @@ void createRobots(String input)
           }
           else
           {
-            Robot p = new Robot(nums[0], nums[1], big, 'g', true, density_large, fric_low, 'm'); // mover
+            Robot p = new Robot(nums[0], nums[1], small, 'g', true, density_large, fric_low, 'm'); // mover
             robots.add(p);
             large_robots += 1;
             large_movers++;
@@ -449,8 +450,8 @@ void createRobots(String input)
     }
   }
   //println("Corrected segregators robots = " + segregators + "  Corrected movers robots = " + movers);
- // println("\nSmall movers = " + small_movers + " Movers large = " + large_movers);
- // println("Actual small movers = " + actual_movers_small);
+ println("\nSmall movers = " + small_movers + " Movers large = " + large_movers);
+  println("Actual small movers = " + actual_movers_small);
   correct_robot_distribution("size", small_movers, actual_movers_small, 'm');
   
   segregators = 0;
@@ -478,8 +479,7 @@ void createRobots(String input)
     packing_fraction += PI*r.r*r.r;
   }
   packing_fraction = packing_fraction/(box_bottom*box_height);
-
-//println("Corrected small movers = " + small_movers + " Corrected movers large = " + large_movers);
+println("Corrected small movers = " + small_movers + " Corrected movers large = " + large_movers);
   
 }
 
@@ -685,27 +685,38 @@ Vec2 calcVelocity(Vec2 box_pos)
 
 void setSimulationConditions()
 {
-      
-   in_counter += 1;
-   
+       in_counter += 1;
+   float temp_packing = 10.0; //Check if the packing fraction is feasible. Initially set to infeasible value
+       while(true) // Keep increasing if the packing fraction is not possible
+       {
+         temp_packing = PI*no_of_robots*(segregator_size*segregator_size *segregator_frac + (1.0-segregator_frac)*(small*small*mover_small_frac + big*big*(1.0-mover_small_frac)))/(box_bottom*box_height);
+         if(temp_packing < 0.85)
+           break;
+         else
+           mover_small_frac += mover_frac_step;
+           
+          if(mover_small_frac > mover_frac_final+mover_frac_step)
+          break;
+          
+           //println(temp_packing);
+       }
    if(in_counter > in_counter_final)
      {
        in_counter = initial_in_counter;
-       float temp_packing = 10.0; //Check if the packing fraction is feasible. Initially set to infeasible value
-       while(temp_packing > 0.85) // Keep increasing if the packing is not possible
-       {
-         mover_small_frac += mover_frac_step;
-         temp_packing = PI*no_of_robots*(segregator_size*segregator_size *segregator_frac + (1.0-segregator_frac)*(small*small*mover_small_frac + big*big*(1.0-mover_small_frac)))/(box_bottom*box_height);
-         println(temp_packing);
-       }
+       mover_small_frac += mover_frac_step;
+       
        if(mover_small_frac > mover_frac_final)
          exitFlag = true;
              
      }  
      else
      {
-     output_init = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Initial/" + str(in_counter) + extention);
-      output_final = createWriter("data/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Final/" + str(in_counter) + extention);
+
+
+      output_init = createWriter(data_folder + "/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Initial/" + str(in_counter) + extention);
+      output_final = createWriter(data_folder + "/Segregator_Size" + str(int(segregator_size)) + "/mover_small_frac/" + nf(mover_small_frac, 0, 1)+ "/Final/" + str(in_counter) + extention);
+     
+       print(in_counter);
      }
 }
 

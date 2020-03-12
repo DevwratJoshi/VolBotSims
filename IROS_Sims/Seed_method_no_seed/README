@@ -1,0 +1,4 @@
+This sim will store position data for the robots we want to store data for
+It will store both initial and final position data
+Store meta data in the same row, such as type of robot and the friction level etc
+Read the data as a pandas dataframe and choose the appropriate columns to make a histogram colourplot with

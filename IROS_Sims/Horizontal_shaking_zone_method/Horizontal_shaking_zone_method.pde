@@ -15,7 +15,7 @@ final float segregator_frac = 0.3; // fraction of modules that are segregators
 final int maxSteps = 5000;
 float small = 20;
 float big = small*big_diameter;
-float segregator_size = big; // Fixed segregator size
+float segregator_size = small; // Fixed segregator size
 final int amplitude = int(small*4); //Fixed amplitude
 final float freq = 0.5; //Fixed frequency
 final float zoneNumber_max = 3;
@@ -130,7 +130,8 @@ void setup()
   print(in_counter);
   extention = ".txt";
   mover_small_frac = mover_frac_initial;
-
+  mouse1 = new Vec2(0,0);
+  mouse2 = new Vec2(0,0);
    /*
   output = createWriter("data/" + "README");
   output.println("frequency = " + str(initialFreq) + " amp = " + str(initialAmp));
@@ -178,7 +179,6 @@ void draw() {
   {
       background(255);
       box2d.step(1/stepsPerSec, 10, 10);
-
       steps++;
       //box_pause = false;
       // Display all the boundaries
@@ -186,7 +186,8 @@ void draw() {
       //ground.display();
   
       displayRobots();
-  
+        setZones();
+       displayZones();
     if(delay == DELAY)
       {
         Vec2 bpos = new Vec2();
@@ -217,6 +218,7 @@ void draw() {
   //////////////////////////// End shake box block
   
 ///////////////////////// Change robot size block
+
       for (int i = robots.size()-1; i >= 0; i--) 
       {
         Robot p = robots.get(i);
@@ -241,6 +243,7 @@ void draw() {
           p.changeRadius(small);
         }
       }
+      
 //////////////////////////// End Change robot size block
   
         Vec2 box_vel = box.checkLinearVelocity();
@@ -342,21 +345,38 @@ boolean robotRadiusIncrease(Robot r)
 
 boolean robotInZone(Vec2 pos)
 {
-  
+  if(pos.x > mouse1.x && pos.x < mouse2.x)
+    return true;
+    
+   else 
+   return false;
 }
 
-void setZoneLine(int zoneNumber) // zoneWidth is the zone width. zoneNumber is 1 for the center zone and zoneNumber_max for the zone at the edge of the box 
+void setZones() // zoneWidth is the zone width. zoneNumber is 1 for the center zone and zoneNumber_max for the zone at the edge of the box 
 {
   //mouse1 corresponds to the left zone line's intercept with the bottom of the box, and mouse2 corresponds to the right line's intercept with the bottom of the box
   // The zone lines here are vertical, so 2 lines can be drawn with these points alone
   Vec2 boxp = box.checkPos();
   
   float zoneWidth_pixels = zoneWidth*small*2;
+  println(zoneWidth_pixels);
   float zone_MidPoint = boxp.x + ((zoneNumber-1) * (box_bottom/2 - zoneWidth_pixels/2))/(zoneNumber_max-1); //x cordinate of the mid point of this zone
+   println(zone_MidPoint);
   mouse1.x = zone_MidPoint - zoneWidth_pixels/2;
   mouse2.x = zone_MidPoint + zoneWidth_pixels/2;
   mouse1.y = boxp.y - box.w/2;
   mouse2.y = boxp.y - box.w/2;
+}
+
+void displayZones()
+{
+  float zoneWidth_pixels = zoneWidth*2*small;
+ pushMatrix();
+ fill(200, 200, 0, 180);
+ noStroke();
+ rectMode(CORNER);
+  rect(mouse1.x, mouse1.y - box_height, zoneWidth_pixels, box_height);
+ popMatrix();
 }
 
 void displayRobots()
@@ -441,7 +461,7 @@ void createRobots(String input)
           float ran3 = random(1);
           if(ran3 < mover_small_frac)
           {
-            Robot p = new Robot(nums[0], nums[1], small, 'g', false, density_small, fric_low, 'm'); // mover
+            Robot p = new Robot(nums[0], nums[1], small, 'g', true, density_small, fric_low, 'm'); // mover
             robots.add(p);
             small_robots += 1;
             small_movers++;
@@ -747,7 +767,7 @@ void setSimulationConditions()
           if(mover_small_frac > mover_frac_final)
           break;
           
-           println(temp_packing);
+           //println(temp_packing);
        }
    if(in_counter > in_counter_final)
      {

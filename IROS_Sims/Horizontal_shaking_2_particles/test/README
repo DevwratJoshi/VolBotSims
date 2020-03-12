@@ -1,0 +1,6 @@
+frequency = 0.6 amp = 160
+big diameter = 34
+ small diameter = 20
+number of robots = 180
+box_bottom = 1200
+friction_low = 0.2 friction_high = 0.6

@@ -14,6 +14,7 @@ class Robot
   public boolean decreasing;
   Vec2 initial_position;
   Vec2 last_position;
+  float orig_size;
   // Constructor
   Robot(float x, float y, float radius, char c, boolean prob, float d, float bed_fric, char t)
   {
@@ -30,7 +31,7 @@ class Robot
     decreasing = false;
     last_position = new Vec2(0,0);
     initial_position = new Vec2(x,y); // Storing the initial position to check how far the robot moved during the sim
-    
+    orig_size = radius;
     switch(c)
     {
      case 'r':
