@@ -55,18 +55,18 @@ int velocityDirection;
 Vec2 mouse1, mouse2;
 Vec2 temp_mouse = new Vec2();
 boolean mouseActive;
-int maxRecord = 50000;
+int maxRecord = 10000;
 StringList LinePositionNumbers; // The array to hold the names of the files for different simulations
 StringList LinePositionGroup;
 String extention; // The extention for the files 
-//String folder_begin = "PIV_data_constant_top_5/middle";
+//String folder_begin = "REVERSE_PIV_data_constant_top_1/middle";
 String folder_begin = "test_data/";
 int currentUpPosition;
 int currentDownPosition;
 Vec2 COM = new Vec2();
 Vec2 box_pos = new Vec2();
 int b_line_top = 5;   // The intersection of the boundary line and the top of the box
-int b_line_bottom = 0; // The intersection of the boundary line and the bottom of the box
+int b_line_bottom = 8; // The intersection of the boundary line and the bottom of the box
 int b_line_section_max = 10; // The last section number. Assuming the same number of intersects for both top and bottom
 final int verticalDivisions = 20;
 final int horizontalDivisions = 20;
@@ -75,7 +75,7 @@ final int filterWidth = 9; // The width of the median filter
 float xVelocities[][] = new float[horizontalDivisions][verticalDivisions];
 float yVelocities[][] = new float[horizontalDivisions][verticalDivisions]; // These are the divisions to be used for the velocity distribution graph. 
 int PIV_collected = 0;
-String in = "initial_positions_280_5";
+String in = "initial_positions_280_1";
 
 boolean blueBallSelected = false;
 BufferedReader reader;
@@ -285,7 +285,7 @@ setZoneLine(b_line_top, b_line_bottom);
       if(delay > DELAY2)
       {
         collectPIV();
-        display_sim_conditions();
+        //display_sim_conditions();
       }
       if(record > maxRecord)
       {
@@ -329,6 +329,7 @@ boolean robotRadiusIncrease(Robot r)
 {
   if(r.bigProb)
   {
+      //if(((mouse1.y - mouse2.y)/(mouse1.x - mouse2.x))*(r.checkPos().x - mouse1.x) + mouse1.y > r.checkPos().y)
       if(((mouse1.y - mouse2.y)/(mouse1.x - mouse2.x))*(r.checkPos().x - mouse1.x) + mouse1.y < r.checkPos().y)
       {
         return true;

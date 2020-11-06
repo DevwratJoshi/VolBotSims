@@ -16,7 +16,7 @@ Box2DProcessing box2d;
 Box box;
 LightHouse light;
 int steps = 0; // keeps track of the number of times the world has stepped
-final int DELAY = 100;
+final int DELAY = 10000;
 
 // A list for all of our rectangles
 ArrayList<Robot> robots;
@@ -466,8 +466,9 @@ void setSimulationConditions()
      }
    if(!endProgram)
    {
-     output = createWriter("data_R_alpha_beta/" + R_fold + str(int(R))  + "/" + beta_fold + str(int(lightWidth)) + "/" + "alpha_fold"  + str(int(lightAngle)) + "/" + data_fold[in_counter-1] + "/" +  "Flash_" + str(R)  +"_" + str(int(lightWidth))+ "_"+ str(int(lightAngle)));
-   }
+     //output = createWriter("data_R_alpha_beta/" + R_fold + str(int(R))  + "/" + beta_fold + str(int(lightWidth)) + "/" + "alpha_fold"  + str(int(lightAngle)) + "/" + data_fold[in_counter-1] + "/" +  "Flash_" + str(R)  +"_" + str(int(lightWidth))+ "_"+ str(int(lightAngle)));
+     output = createWriter("test" + extention);
+ }
 }
 
 
